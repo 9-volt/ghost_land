@@ -18,7 +18,7 @@ int[] blobsArray;
 int cornerXMin, cornerXMax, cornerYMin, cornerYMax, cornerXSize, cornerYSize;
 int playgroundArea;
 
-int lastCentroidId = 0, lastCentroidsCount = 10;
+int lastCentroidId = 0, lastCentroidsCount = 20;
 PVector[] lastCentroids = new PVector[lastCentroidsCount];
 
 // Depth variation
@@ -79,6 +79,15 @@ void onAllCornersSet() {
   cornerYMax = (int) Math.max(corners[2].y, corners[3].y);
   cornerXSize = cornerXMax - cornerXMin;
   cornerYSize = cornerYMax - cornerYMin;
+  
+  // Enlarge corners
+  cornerXMin -= (int) (cornerXSize * 0.1); 
+  cornerXMax += (int) (cornerXSize * 0.1); 
+  cornerXSize = cornerXMax - cornerXMin;
+  cornerYMin -= (int) (cornerYSize * 0.1);
+  cornerYMax += (int) (cornerYSize * 0.1);
+  cornerYSize = cornerYMax - cornerYMin;
+  
 //  bd = new Detector(this, 0, 0, cornerXSize, cornerYSize, 255);
   bd = new Detector(this, 255);
   blobsImage = createImage(640, 480, RGB);
@@ -180,13 +189,17 @@ void drawDepth() {
   bd.weightBlobs(false);
   bd.findCentroids();
   bd.drawContours(color(255, 0, 0), 2);
-//  
+
   for(i = 0; i < bd.getBlobsNumber(); i++) {
     if (bd.getBlobWeight(i) < playgroundArea / 25 && bd.getBlobsNumber() < 3) {
       if (bd.getBlobWeight(i) > 20) {
         lastCentroidId++;
-        lastCentroids[lastCentroidId % lastCentroidsCount].x = bd.getCentroidX(i);
-        lastCentroids[lastCentroidId % lastCentroidsCount].y = bd.getCentroidY(i); 
+        x = (int) bd.getCentroidX(i);
+        y = (int) bd.getCentroidY(i);
+        lastCentroids[lastCentroidId % lastCentroidsCount].x = x;
+        lastCentroids[lastCentroidId % lastCentroidsCount].y = y;
+        lastCentroids[lastCentroidId % lastCentroidsCount].z = depthValues[x + y * 640]; // Depth
+//        print(depthValues[x + y * 640], "\n");
 //        print(i, ": ", bd.getEdgeSize(i), " - ", bd.getBlobWeight(i), "\n"); 
 //      point(bd.getCentroidX(i), bd.getCentroidY(i));
       }
@@ -198,6 +211,8 @@ void drawDepth() {
   stroke(142, 255, 154);
   strokeWeight(5);
   for(i = 0; i < lastCentroidsCount; i++) {
+    stroke(142, 255, (int) (255 * lastCentroids[i].z / canvasDepthMax));
+//    print((int) (255 * lastCentroids[i].z / canvasDepthMax), " ", lastCentroids[i].z, "\n");
 //    print(lastCentroidId % lastCentroidsCount);
     point(lastCentroids[i].x, lastCentroids[i].y);
   }
