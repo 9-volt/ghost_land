@@ -7,6 +7,7 @@ PImage canvas = null;
 int maxDepth = 0;
 int minDepth = -1;
 PVector[] corners = new PVector[4];
+java.awt.Polygon cornersPolygon = new java.awt.Polygon();
 boolean cornersSet = false;
 int cornersSetCount = 0;
 
@@ -43,9 +44,12 @@ void mouseClicked() {
     case 3:
       corners[3] = new PVector(mouseX, mouseY);
       cornersSet = true;
+      cornersPolygon.addPoint((int) corners[0].x, (int) corners[0].y);
+      cornersPolygon.addPoint((int) corners[1].x, (int) corners[1].y);
+      cornersPolygon.addPoint((int) corners[2].x, (int) corners[2].y);
+      cornersPolygon.addPoint((int) corners[3].x, (int) corners[3].y);
       break; 
     default:
-      print(inPolyCheck(new PVector(mouseX, mouseY), corners), "\n"); // check if clicked inside of canvas
       break;
   }
   cornersSetCount++;
@@ -84,7 +88,11 @@ void drawDepth() {
       
       // Display only variations bigger than 100 units
       if (Math.abs(depthValues[i] - lastDepthValues[i]) < 100) {
-        canvas.pixels[i] = color(255, 255, 255);
+        if (cornersPolygon.contains(x, y)) {
+          canvas.pixels[i] = color(255, 255, 128);
+        } else {
+          canvas.pixels[i] = color(255, 255, 255);
+        }
       } else {
         // Print once in 100 times
         if (Math.random() < 0.01) {
@@ -118,33 +126,4 @@ void drawRectangleToCanvas() {
   line(bottomRight.x, bottomRight.y, bottomLeft.x, bottomLeft.y);
 }
 
-// Checks is a point is inside a poly
-// http://www.openprocessing.org/sketch/65627
-int inPolyCheck(PVector v, PVector [] p) {
-  float a = 0;
-  for (int i =0; i<p.length-1; ++i) {
-    PVector v1 = p[i].get();
-    PVector v2 = p[i+1].get();
-    a += vAtan2cent180(v, v1, v2);
-  }
-  PVector v1 = p[p.length-1].get();
-  PVector v2 = p[0].get();
-  a += vAtan2cent180(v, v1, v2);
-//  if (a < 0.001) println(degrees(a));
- 
-  if (abs(abs(a) - TWO_PI) < 0.01) return 1;
-  else return 0;
-}
-
-float vAtan2cent180(PVector cent, PVector v2, PVector v1) {
-  PVector vA = v1.get();
-  PVector vB = v2.get();
-  vA.sub(cent);
-  vB.sub(cent);
-  vB.mult(-1);
-  float ang = atan2(vB.x, vB.y) - atan2(vA.x, vA.y);
-  if (ang < 0) ang = TWO_PI + ang;
-  ang-=PI;
-  return ang;
-}
 
