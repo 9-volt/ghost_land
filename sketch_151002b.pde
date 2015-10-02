@@ -18,13 +18,17 @@ int[] blobsArray;
 int cornerXMin, cornerXMax, cornerYMin, cornerYMax, cornerXSize, cornerYSize;
 int playgroundArea;
 
-int lastCentroidId = -1, lastCentroidsCount = 10;
+int lastCentroidId = 0, lastCentroidsCount = 10;
 PVector[] lastCentroids = new PVector[lastCentroidsCount];
 
 
 // Depth variation
 int[] lastDepthValues = new int[640 * 480];
+
 int maxDepth = 0;
+int canvasDepthMax = 0;
+int canvasDepthMin = 999999;
+int[] defaultDepthValues = new int[640 * 480];
 
 void setup()
 {
@@ -86,9 +90,29 @@ void onAllCornersSet() {
   playgroundArea = cornerXSize * cornerYSize;
   print("Canvas size ", cornerXSize, "x", cornerYSize, "\n");
   
-  for (int i = 0; i < lastCentroidsCount; i++) {
+  int i;
+  for (i = 0; i < lastCentroidsCount; i++) {
     lastCentroids[i] = new PVector(0, 0);
   }
+    
+  int x, y;
+  int[] depthValues = context.depthMap();
+  for (y = cornerYMin; y < cornerYMax; y++) {
+    for (x = cornerXMin; x < cornerXMax; x++) {
+      i = x + y * 640;
+      canvasDepthMax = Math.max(canvasDepthMax, depthValues[i]);
+      canvasDepthMin = Math.min(canvasDepthMin, depthValues[i]);
+    } 
+  }
+  
+  for (y = cornerYMin; y < cornerYMax; y++) {
+    for (x = cornerXMin; x < cornerXMax; x++) {
+      i = x + y * 640;
+      defaultDepthValues[i] = Math.min(canvasDepthMax, Math.max(canvasDepthMin, depthValues[i]));
+    } 
+  }
+  
+  print("Min ", canvasDepthMin, " Max ", canvasDepthMax, "\n");
 }
 
 void draw()
@@ -125,7 +149,7 @@ void drawDepth() {
       }
       
       if (x < cornerXMax && x > cornerXMin && y < cornerYMax && y > cornerYMin) {
-        if (Math.abs(depthValues[i] - lastDepthValues[i]) < 100) {
+        if (Math.abs(depthValues[i] - defaultDepthValues[i]) < 100) {
           blobsImage.pixels[i] = color(255, 255, 255);  
         } else {
           colorChanell = (int) (255 * depth / maxDepth);
@@ -169,12 +193,11 @@ void drawDepth() {
   bd.findCentroids();
 //  bd.drawContours(color(255, 0, 0), 2);
 //  
-  stroke(0, 0, 255);
-  strokeWeight(8);
   for(i = 0; i < bd.getBlobsNumber(); i++) {
-    if (bd.getBlobWeight(i) < playgroundArea / 10 && i == 1) {
-      lastCentroids[++lastCentroidId % lastCentroidsCount].x = bd.getCentroidX(i);
-      lastCentroids[++lastCentroidId % lastCentroidsCount].y = bd.getCentroidY(i); 
+    if (bd.getBlobWeight(i) < playgroundArea / 10 && bd.getBlobsNumber() < 3) {
+      lastCentroidId++;
+      lastCentroids[lastCentroidId % lastCentroidsCount].x = bd.getCentroidX(i);
+      lastCentroids[lastCentroidId % lastCentroidsCount].y = bd.getCentroidY(i); 
 //      print(i, ": ", bd.getEdgeSize(i), " - ", bd.getBlobWeight(i), "\n"); 
 //      point(bd.getCentroidX(i), bd.getCentroidY(i));
     }
@@ -184,8 +207,11 @@ void drawDepth() {
   image(blobsImage, 0, 0);
   drawRectangleToCanvas();
   
+  stroke(0, 0, 255);
+  strokeWeight(5);
   for(i = 0; i < lastCentroidsCount; i++) {
-    point(lastCentroids[++lastCentroidId % lastCentroidsCount].x, lastCentroids[++lastCentroidId % lastCentroidsCount].y);
+//    print(lastCentroidId % lastCentroidsCount);
+    point(lastCentroids[i].x, lastCentroids[i].y);
   }
 }
 
