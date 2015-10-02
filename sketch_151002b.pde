@@ -195,7 +195,10 @@ void drawDepth() {
 
   validBlobsCount = 0;
   for(i = 0; i < bd.getBlobsNumber(); i++) {
-    if (bd.getBlobWeight(i) < playgroundArea / 25 && bd.getBlobWeight(i) > 20) {
+    x = (int) bd.getCentroidX(i);
+    y = (int) bd.getCentroidY(i);
+    depth = depthValues[x + y * 640];
+    if (bd.getBlobWeight(i) < playgroundArea / 25 && bd.getBlobWeight(i) > 20 && depth > 0) {
       validBlobsCount++;
     }
   }
@@ -203,9 +206,11 @@ void drawDepth() {
   // Only if there is one valid blob
   if (validBlobsCount == 1) {
     for(i = 0; i < bd.getBlobsNumber(); i++) {
-      if (bd.getBlobWeight(i) < playgroundArea / 25 && bd.getBlobWeight(i) > 20) {
-        x = (int) bd.getCentroidX(i);
-        y = (int) bd.getCentroidY(i);
+      x = (int) bd.getCentroidX(i);
+      y = (int) bd.getCentroidY(i);
+      depth = depthValues[x + y * 640];
+      
+      if (bd.getBlobWeight(i) < playgroundArea / 25 && bd.getBlobWeight(i) > 20 && depth > 0) {
         lastCentroids[nextCentroidId % lastCentroidsCount].x = x;
         lastCentroids[nextCentroidId % lastCentroidsCount].y = y;
         lastCentroids[nextCentroidId % lastCentroidsCount].z = depthValues[x + y * 640]; // Depth
@@ -254,6 +259,16 @@ void checkCentroids() {
     }
   }
   
+  // If 3 centroids colected and centroid stil not found
+  if (nextCentroidId > 3 && !centroidFound) {
+    for (int i = 1; i < nextCentroidId && i < lastCentroidsCount; i++) {
+      if (lastCentroids[i - 1].z > 0 && lastCentroids[i - 1].z > lastCentroids[i].z) {
+        computeCentroid();
+        break;
+      }
+    }
+  }
+  
   // Check if we should compute hit now
 }
 
@@ -268,6 +283,8 @@ void emptyFrame() {
   }
 }
 
+// TODO make working even if onyl decreasing points passed
+// TODO compute hit by computing trajectory
 void computeCentroid() {
   print("Computing centroid\n");
   
@@ -277,7 +294,7 @@ void computeCentroid() {
         // Still increasing
       } else {
         // If near the wall
-        if (lastCentroids[i - 1].z > canvasDepthMin * 0.9) {
+        if (lastCentroids[i - 1].z > canvasDepthMin * 0.9 || lastCentroids[i].z > canvasDepthMin * 0.9) {
           // Take the farest point as hit
           if (lastCentroids[i].z > lastCentroids[i - 1].z) {
             lastCentroidHit.x = lastCentroids[i].x;
@@ -291,6 +308,10 @@ void computeCentroid() {
         // Too far from wall
         } else {
           print("Something detected, but too far from wall\n");
+          print("i ", i, "Prev ", lastCentroids[i - 1].z, " Next ", lastCentroids[i].z, "\n");
+          for (int j = 0; j < nextCentroidId && j < lastCentroidsCount; j++) {
+            print("i: ", j, " x:", lastCentroids[j].x, " y:", lastCentroids[j].y, " z:", lastCentroids[j].z, "\n");
+          }
         }
         break; // Leave loop
       }   
