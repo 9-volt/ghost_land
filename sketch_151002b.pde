@@ -142,10 +142,10 @@ void drawDepth() {
       
       if (x < cornerXMax && x > cornerXMin && y < cornerYMax && y > cornerYMin) {
         if (Math.abs(depth - defaultDepthValues[i]) < 100) {
-          blobsImage.pixels[i] = color(255, 255, 255);  
+          blobsImage.pixels[i] = color(0, 0, 0);  
         } else {
           colorChanell = (int) (255 * depth / canvasDepthMax);
-          blobsImage.pixels[i] = color(0, colorChanell, 0); 
+          blobsImage.pixels[i] = color(255, 255, 255); 
         }
       }
       
@@ -170,15 +170,16 @@ void drawDepth() {
 
   
   canvas.updatePixels();
-//  blobsImage.updatePixels();
 //  image(canvas, 0, 0);
-//  image(blobsImage, 0, 0);
-//  drawRectangleToCanvas();
+  
+  blobsImage.updatePixels();
+  image(blobsImage, 0, 0);
+  drawRectangleToCanvas();
   
   bd.loadBlobsFeatures(); // mandatory
   bd.weightBlobs(false);
   bd.findCentroids();
-//  bd.drawContours(color(255, 0, 0), 2);
+  bd.drawContours(color(255, 0, 0), 2);
 //  
   for(i = 0; i < bd.getBlobsNumber(); i++) {
     if (bd.getBlobWeight(i) < playgroundArea / 10 && bd.getBlobsNumber() < 3) {
@@ -190,9 +191,7 @@ void drawDepth() {
     }
   }
 //  
-  blobsImage.updatePixels();
-  image(blobsImage, 0, 0);
-  drawRectangleToCanvas();
+  
   
   stroke(0, 0, 255);
   strokeWeight(5);
