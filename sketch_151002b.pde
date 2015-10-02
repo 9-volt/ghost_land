@@ -21,11 +21,7 @@ int playgroundArea;
 int lastCentroidId = 0, lastCentroidsCount = 10;
 PVector[] lastCentroids = new PVector[lastCentroidsCount];
 
-
 // Depth variation
-int[] lastDepthValues = new int[640 * 480];
-
-int maxDepth = 0;
 int canvasDepthMax = 0;
 int canvasDepthMin = 999999;
 int[] defaultDepthValues = new int[640 * 480];
@@ -142,23 +138,19 @@ void drawDepth() {
   for (y = 0; y < 480; y++) {
     for (x = 0; x < 640; x++) {
       i = x + y * 640; 
-      depth = depthValues[i];
-      
-      if (depth > maxDepth) {
-        maxDepth = depth;
-      }
+      depth = depthValues[i];     
       
       if (x < cornerXMax && x > cornerXMin && y < cornerYMax && y > cornerYMin) {
-        if (Math.abs(depthValues[i] - defaultDepthValues[i]) < 100) {
+        if (Math.abs(depth - defaultDepthValues[i]) < 100) {
           blobsImage.pixels[i] = color(255, 255, 255);  
         } else {
-          colorChanell = (int) (255 * depth / maxDepth);
+          colorChanell = (int) (255 * depth / canvasDepthMax);
           blobsImage.pixels[i] = color(0, colorChanell, 0); 
         }
       }
       
       // Display only variations bigger than 100 units
-      if (Math.abs(depthValues[i] - lastDepthValues[i]) < 100) {
+      if (Math.abs(depth - defaultDepthValues[i]) < 100) {
         
         if (cornersPolygon.contains(x, y)) {
           canvas.pixels[i] = color(255, 255, 128);
@@ -166,14 +158,9 @@ void drawDepth() {
           canvas.pixels[i] = color(255, 255, 255);
         }
       } else {
-        // Print once in 100 times
-        if (Math.random() < 0.01) {
-//          print(i, Math.abs(depthValues[i] - lastDepthValues[i]), " max: ", maxDepth, "\n");
-        }
         canvas.pixels[i] = color(0,0,100);
       }
       
-      lastDepthValues[i] = depthValues[i];
       
     }
   }
