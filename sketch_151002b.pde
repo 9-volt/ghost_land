@@ -182,18 +182,20 @@ void drawDepth() {
   bd.drawContours(color(255, 0, 0), 2);
 //  
   for(i = 0; i < bd.getBlobsNumber(); i++) {
-    if (bd.getBlobWeight(i) < playgroundArea / 10 && bd.getBlobsNumber() < 3) {
-      lastCentroidId++;
-      lastCentroids[lastCentroidId % lastCentroidsCount].x = bd.getCentroidX(i);
-      lastCentroids[lastCentroidId % lastCentroidsCount].y = bd.getCentroidY(i); 
-//      print(i, ": ", bd.getEdgeSize(i), " - ", bd.getBlobWeight(i), "\n"); 
+    if (bd.getBlobWeight(i) < playgroundArea / 25 && bd.getBlobsNumber() < 3) {
+      if (bd.getBlobWeight(i) > 20) {
+        lastCentroidId++;
+        lastCentroids[lastCentroidId % lastCentroidsCount].x = bd.getCentroidX(i);
+        lastCentroids[lastCentroidId % lastCentroidsCount].y = bd.getCentroidY(i); 
+//        print(i, ": ", bd.getEdgeSize(i), " - ", bd.getBlobWeight(i), "\n"); 
 //      point(bd.getCentroidX(i), bd.getCentroidY(i));
+      }
     }
   }
 //  
   
   
-  stroke(0, 0, 255);
+  stroke(142, 255, 154);
   strokeWeight(5);
   for(i = 0; i < lastCentroidsCount; i++) {
 //    print(lastCentroidId % lastCentroidsCount);
