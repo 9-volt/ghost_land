@@ -18,8 +18,12 @@ int[] blobsArray;
 int cornerXMin, cornerXMax, cornerYMin, cornerYMax, cornerXSize, cornerYSize;
 int playgroundArea;
 
-int lastCentroidId = 0, lastCentroidsCount = 20;
+// Centroids
+int nextCentroidId = 0, lastCentroidsCount = 20;
 PVector[] lastCentroids = new PVector[lastCentroidsCount];
+PVector lastCentroidHit = new PVector(0, 0);
+int emptyFramesCount = 0;
+boolean centroidFound = true;
 
 // Depth variation
 int canvasDepthMax = 0;
@@ -137,7 +141,8 @@ void draw()
 void drawDepth() {
 //  image(context.depthImage(),0,0);
   int[] depthValues = context.depthMap();
-  int i, x, y, depth, colorChanell;
+  int i, x, y, depth, colorChanell, validBlobsCount;
+  boolean hasValidCentroid = false;
   
   background(255, 255, 255);
   
@@ -176,8 +181,6 @@ void drawDepth() {
   
   bd.findBlobs(blobsImage.pixels, blobsImage.width, blobsImage.height);
   
-
-  
   canvas.updatePixels();
 //  image(canvas, 0, 0);
   
@@ -190,32 +193,111 @@ void drawDepth() {
   bd.findCentroids();
   bd.drawContours(color(255, 0, 0), 2);
 
+  validBlobsCount = 0;
   for(i = 0; i < bd.getBlobsNumber(); i++) {
-    if (bd.getBlobWeight(i) < playgroundArea / 25 && bd.getBlobsNumber() < 3) {
-      if (bd.getBlobWeight(i) > 20) {
-        lastCentroidId++;
+    if (bd.getBlobWeight(i) < playgroundArea / 25 && bd.getBlobWeight(i) > 20) {
+      validBlobsCount++;
+    }
+  }
+  
+  // Only if there is one valid blob
+  if (validBlobsCount == 1) {
+    for(i = 0; i < bd.getBlobsNumber(); i++) {
+      if (bd.getBlobWeight(i) < playgroundArea / 25 && bd.getBlobWeight(i) > 20) {
         x = (int) bd.getCentroidX(i);
         y = (int) bd.getCentroidY(i);
-        lastCentroids[lastCentroidId % lastCentroidsCount].x = x;
-        lastCentroids[lastCentroidId % lastCentroidsCount].y = y;
-        lastCentroids[lastCentroidId % lastCentroidsCount].z = depthValues[x + y * 640]; // Depth
-//        print(depthValues[x + y * 640], "\n");
-//        print(i, ": ", bd.getEdgeSize(i), " - ", bd.getBlobWeight(i), "\n"); 
-//      point(bd.getCentroidX(i), bd.getCentroidY(i));
+        lastCentroids[nextCentroidId % lastCentroidsCount].x = x;
+        lastCentroids[nextCentroidId % lastCentroidsCount].y = y;
+        lastCentroids[nextCentroidId % lastCentroidsCount].z = depthValues[x + y * 640]; // Depth
+//        print(x, " ", y, " ", depthValues[x + y * 640], "\n");
+        nextCentroidId++;
+        hasValidCentroid = true;
+        checkCentroids();
       }
     }
   }
-//  
   
+  
+  if (!hasValidCentroid) {
+    emptyFrame();
+  }
+//  
+    
   
   stroke(142, 255, 154);
   strokeWeight(5);
   for(i = 0; i < lastCentroidsCount; i++) {
-    stroke(142, 255, (int) (255 * lastCentroids[i].z / canvasDepthMax));
-//    print((int) (255 * lastCentroids[i].z / canvasDepthMax), " ", lastCentroids[i].z, "\n");
-//    print(lastCentroidId % lastCentroidsCount);
-    point(lastCentroids[i].x, lastCentroids[i].y);
+    if (lastCentroids[i].z > 0) {
+      stroke(142, 255, (int) (255 * lastCentroids[i].z / canvasDepthMax));
+    //    print((int) (255 * lastCentroids[i].z / canvasDepthMax), " ", lastCentroids[i].z, "\n");
+    //    print(nextCentroidId % lastCentroidsCount);
+      point(lastCentroids[i].x, lastCentroids[i].y);
+    }
   }
+  
+  stroke(255, 0, 0);
+  strokeWeight(8);
+  point(lastCentroidHit.x, lastCentroidHit.y);
+}
+
+void checkCentroids() {
+  // If new centroid was just added
+  if (nextCentroidId == 1) {
+    centroidFound = false;
+    emptyFramesCount = 0;
+    
+    // Reset previous centroids
+    for (int i = 1; i < lastCentroidsCount; i++) {
+      lastCentroids[i].x = 0;
+      lastCentroids[i].y = 0;
+      lastCentroids[i].z = 0;
+    }
+  }
+  
+  // Check if we should compute hit now
+}
+
+void emptyFrame() {
+  emptyFramesCount++;
+  if (emptyFramesCount >= 7 && nextCentroidId > 0 && !centroidFound) {
+    computeCentroid();
+  }
+  
+  if (emptyFramesCount >= 7 && centroidFound) {
+    nextCentroidId = 0;
+  }
+}
+
+void computeCentroid() {
+  print("Computing centroid\n");
+  
+  if (nextCentroidId > 2) {
+    for (int i = 1; i < nextCentroidId && i < lastCentroidsCount; i++) {
+      if (lastCentroids[i - 1].z < lastCentroids[i].z) {
+        // Still increasing
+      } else {
+        // If near the wall
+        if (lastCentroids[i - 1].z > canvasDepthMin * 0.9) {
+          // Take the farest point as hit
+          if (lastCentroids[i].z > lastCentroids[i - 1].z) {
+            lastCentroidHit.x = lastCentroids[i].x;
+            lastCentroidHit.y = lastCentroids[i].y; 
+          } else {
+            lastCentroidHit.x = lastCentroids[i - 1].x;
+            lastCentroidHit.y = lastCentroids[i - 1].y;
+          }
+          
+          // TODO emit wall hit
+        // Too far from wall
+        } else {
+          print("Something detected, but too far from wall\n");
+        }
+        break; // Leave loop
+      }   
+    }
+  }
+  
+  centroidFound = true;
 }
 
 // Draw a rectangle around canvas
