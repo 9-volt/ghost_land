@@ -1,5 +1,7 @@
 import SimpleOpenNI.*;
 import blobscanner.*;
+import muthesius.net.*;
+import org.webbitserver.*;
 
 // Context and drawing canvas
 SimpleOpenNI  context;
@@ -30,6 +32,9 @@ int canvasDepthMax = 0;
 int canvasDepthMin = 999999;
 int[] defaultDepthValues = new int[640 * 480];
 
+// Socket 
+WebSocketP5 socket;
+
 void setup()
 {
   context = new SimpleOpenNI(this);
@@ -47,6 +52,9 @@ void setup()
   background(color(0,0,0));
   canvas = createImage(640, 480, RGB);
   context.setDepthToColor(true);
+  
+  // Socket
+  socket = new WebSocketP5(this,8080);
 }
 
 void mouseClicked() {
@@ -287,6 +295,7 @@ void emptyFrame() {
 // TODO compute hit by computing trajectory
 void computeCentroid() {
   print("Computing centroid\n");
+  float hitX, hitY;
   
   if (nextCentroidId > 2) {
     for (int i = 1; i < nextCentroidId && i < lastCentroidsCount; i++) {
@@ -305,6 +314,10 @@ void computeCentroid() {
           }
           
           // TODO emit wall hit
+          hitX = (lastCentroidHit.x - cornerXMin) / cornerXSize;
+          hitY = (lastCentroidHit.y - cornerYMin) / cornerYSize;
+          print("{\"action\": \"hit\", \"x\": " + hitX + ", \"y\": " + hitY + "}");
+          socket.broadcast("{\"action\": \"hit\", \"x\": " + hitX + ", \"y\": " + hitY + "}");
         // Too far from wall
         } else {
           print("Something detected, but too far from wall\n");
@@ -342,6 +355,23 @@ void drawRectangleToCanvas() {
   line(cornerXMax, cornerYMin, cornerXMax, cornerYMax);
   line(cornerXMax, cornerYMax, cornerXMin, cornerYMax);
   line(cornerXMin, cornerYMax, cornerXMin, cornerYMin);
+}
+
+// Websocket functions
+void stop(){
+  socket.stop();
+}
+
+void websocketOnMessage(WebSocketConnection con, String msg){
+  println(msg);
+}
+
+void websocketOnOpen(WebSocketConnection con){
+  println("A client joined");
+}
+
+void websocketOnClosed(WebSocketConnection con){
+  println("A client left");
 }
 
 
