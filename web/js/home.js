@@ -23,7 +23,7 @@ window.GhostLand.Home = (function(GhostLand){
 
   function hit() {
     home && game.add.tween(home)
-      .to({x: homeX + 10}, 100, Phaser.Easing.Bounce.InOut, true, 0, 0, true);
+      .to({x: homeX + 10}, 50, Phaser.Easing.Bounce.InOut, true, 0, 3, true);
   }
 
   return {

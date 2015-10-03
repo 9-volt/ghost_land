@@ -64,6 +64,7 @@ window.GhostLand.Game = (function(GhostLand){
       , intro: null
       , start: null
       }
+    , sun
 
   function init() {
     game = new Phaser.Game(Settings.width, Settings.height, Phaser.AUTO, 'ghost-land', {
@@ -78,6 +79,7 @@ window.GhostLand.Game = (function(GhostLand){
     game.load.image('bg-night', 'assets/bg-night.png');
     game.load.spritesheet('sprite-ghost', 'assets/sprite-ghost.png', 74, 53, 6, 0, 1);
     game.load.spritesheet('sprite-home', 'assets/sprite-home.png', 79, 82, 4, 0, 1);
+    game.load.spritesheet('sprite-sun', 'assets/sprite-sun.png', 124, 124, 1);
     game.load.audio('audio-death', 'assets/audio/death.mp3')
     game.load.audio('audio-gameplay', 'assets/audio/gameplay.mp3')
     game.load.audio('audio-hit', 'assets/audio/hit.mp3')
@@ -146,6 +148,10 @@ window.GhostLand.Game = (function(GhostLand){
       // Hit the sun
       if (x > 338 && x < 463 && y > 27 && y < 152) {
         currentStateHits++
+        sun && game.add.tween(sun)
+          .to({x: 400 - 62 + 10}, 40, Phaser.Easing.Bounce.InOut, true, 0, 3, true);
+      } else {
+        currentStateHits = 0
       }
     }
 
@@ -206,6 +212,7 @@ window.GhostLand.Game = (function(GhostLand){
       audio.start && audio.start.play()
       audio.intro && audio.intro.isPlaying && audio.intro.stop()
       audio.gameplay && !audio.gameplay.isPlaying && audio.gameplay.play()
+      sun && sun.destroy() && (sun = null)
     } else {
       Enemies.stop()
       Home.hide()
@@ -215,6 +222,10 @@ window.GhostLand.Game = (function(GhostLand){
 
       if (nextState === 'death') {
         audio.death && audio.death.play()
+      }
+
+      if (!sun) {
+        sun = game.add.sprite(400 - 62, 24, 'sprite-sun')
       }
     }
   }
