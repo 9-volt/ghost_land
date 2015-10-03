@@ -220,7 +220,7 @@ window.GhostLand.Game = (function(GhostLand){
     } else {
       Enemies.stop()
       Home.hide()
-      scoreText.text = ''
+      // scoreText.text = ''
       audio.gameplay && audio.gameplay.isPlaying && audio.gameplay.stop()
       audio.intro && !audio.intro.isPlaying && audio.intro.play()
 
