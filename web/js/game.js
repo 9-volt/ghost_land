@@ -56,6 +56,13 @@ window.GhostLand.Game = (function(GhostLand){
     , currentLife = 3
     , score = 0
     , scoreText
+    , audio = {
+        death: null
+      , gameplay: null
+      , hit: null
+      , intro: null
+      , start: null
+      }
 
   function init() {
     game = new Phaser.Game(Settings.width, Settings.height, Phaser.AUTO, 'ghost-land', {
@@ -69,6 +76,11 @@ window.GhostLand.Game = (function(GhostLand){
     game.load.image('bg-day', 'assets/bg-day.png');
     game.load.image('bg-night', 'assets/bg-night.png');
     game.load.spritesheet('sprite-ghost', 'assets/sprite-ghost.png', 74, 53, 6, 0, 1);
+    game.load.audio('audio-death', 'assets/audio/death.mp3')
+    game.load.audio('audio-gameplay', 'assets/audio/gameplay.mp3')
+    game.load.audio('audio-hit', 'assets/audio/hit.mp3')
+    game.load.audio('audio-intro', 'assets/audio/intro.mp3')
+    game.load.audio('audio-start', 'assets/audio/start.mp3')
   }
 
   function create() {
@@ -96,6 +108,18 @@ window.GhostLand.Game = (function(GhostLand){
 
     // Enemies
     Enemies.init(game)
+
+    // Audio
+    audio.death = game.add.audio('audio-death')
+    audio.death.loop = false
+    audio.gameplay = game.add.audio('audio-gameplay')
+    audio.gameplay.loop = true
+    audio.hit = game.add.audio('audio-hit')
+    audio.hit.loop = false
+    audio.intro = game.add.audio('audio-intro')
+    audio.intro.loop = true
+    audio.start = game.add.audio('audio-start')
+    audio.start.loop = false
   }
 
   function update() {
@@ -131,6 +155,7 @@ window.GhostLand.Game = (function(GhostLand){
       var hitCount = Enemies.hitCount(x, y)
 
       if (hitCount) {
+        audio.hit && audio.hit.play()
         currentStateHits += hitCount
         Enemies.difficulty(Math.log(currentStateHits))
         scoreText.text = currentStateHits
@@ -172,9 +197,18 @@ window.GhostLand.Game = (function(GhostLand){
     if (nextState === 'game') {
       Enemies.start()
       scoreText.text = '0'
+      audio.start && audio.start.play()
+      audio.intro && audio.intro.isPlaying && audio.intro.stop()
+      audio.gameplay && !audio.gameplay.isPlaying && audio.gameplay.play()
     } else {
       Enemies.stop()
       scoreText.text = ''
+      audio.gameplay && audio.gameplay.isPlaying && audio.gameplay.stop()
+      audio.intro && !audio.intro.isPlaying && audio.intro.play()
+
+      if (nextState === 'death') {
+        audio.death && audio.death.play()
+      }
     }
   }
 
