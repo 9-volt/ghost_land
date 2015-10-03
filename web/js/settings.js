@@ -1,7 +1,8 @@
 window.GhostLand.Settings = {
   width: 800
 , height: 600
-, isDebug: false
+, isDebug: true
+, useKinect: false
 , socket: {
     hostname: "localhost",
     port: "8080",

@@ -5,19 +5,19 @@ window.GhostLand.Game = (function(GhostLand){
     , gameStates = {
         welcome: {
           bg: 'day'
-        , time: 5
+        , time: Settings.isDebug ? 0.5 : 5
         , next: 'lets_play'
         , text: 'WELCOME TO GHOST LAND'
         }
       , lets_play: {
           bg: 'day'
-        , time: 3
+        , time: Settings.isDebug ? 0.5 : 3
         , next: 'are_you_worthy'
         , text: 'LET’S PLAY A GAME'
         }
       , are_you_worthy: {
           bg: 'day'
-        , time: 4
+        , time: Settings.isDebug ? 0.5 : 4
         , next: 'hit_the_sun'
         , text: 'FIRST, LET’S SEE IF YOU’RE A WORTHY PLAYER'
         }
@@ -29,7 +29,7 @@ window.GhostLand.Game = (function(GhostLand){
         }
       , lets_play_then: {
           bg: 'night'
-        , time: 3
+        , time: Settings.isDebug ? 0.5 : 3
         , next: 'game'
         , text: 'OK, LET’S PLAY THEN\n\nKILL THE GHOSTS BEFORE THEY GET TO YOUR HOUSE'
         }
@@ -37,10 +37,11 @@ window.GhostLand.Game = (function(GhostLand){
           bg: 'night'
         , time: -1
         , next: 'death'
+        , text: ''
         }
       , death: {
           bg: 'day'
-        , time: 30
+        , time: Settings.isDebug ? 0.5 : 30
         , next: 'lets_play'
         , text: 'HARD ONE, EH?\n\nWANNA TRY AGAIN?\nHIT THE SUN FOR “YES”'
         }
@@ -49,6 +50,7 @@ window.GhostLand.Game = (function(GhostLand){
     , currentState = null
     , currentStateName = null
     , currentStateStartTime = null
+    , currentStateHits = 0
 
   function init() {
     game = new Phaser.Game(Settings.width, Settings.height, Phaser.CANVAS, 'ghost-land', {
@@ -60,7 +62,7 @@ window.GhostLand.Game = (function(GhostLand){
 
   function preload() {
     game.load.image('bg-day', 'assets/bg-day.png');
-    game.load.image('bg-night', 'assets/bg-day.png');
+    game.load.image('bg-night', 'assets/bg-night.png');
   }
 
   function create() {
@@ -82,7 +84,20 @@ window.GhostLand.Game = (function(GhostLand){
   }
 
   function hit(x, y) {
+    if (currentStateName == 'hit_the_sun' || currentStateName == 'death') {
+      // Hit the sun
+      if (x > 338 && x < 463 && y > 27 && y < 152) {
+        currentStateHits++
+      }
+    }
 
+    // If completed hit_the_sun
+    if (currentStateName == 'hit_the_sun' && currentStateHits >= 3) {
+      setState(currentState.next)
+    // If completed death
+    } else if (currentStateName == 'death' && currentStateHits >= 1) {
+      setState(currentState.next)
+    }
   }
 
   function checkForState() {
@@ -95,13 +110,23 @@ window.GhostLand.Game = (function(GhostLand){
     }
 
     if (nextState && nextState != currentStateName) {
-      currentStateName = nextState
-      currentState = gameStates[currentStateName]
-      currentStateStartTime = Date.now()
+      setState(nextState)
+    }
+  }
 
-      if (currentState.text) {
-        text.text = currentState.text;
-      }
+  function setState(nextState) {
+    currentStateName = nextState
+    currentState = gameStates[currentStateName]
+    currentStateStartTime = Date.now()
+    currentStateHits = 0
+
+    // Backgrounds needs an update
+    if (background.key != 'bg-' + currentState.bg) {
+      background.loadTexture('bg-' + currentState.bg)
+    }
+
+    if (currentState.text != null) {
+      text.text = currentState.text;
     }
   }
 

@@ -1,5 +1,6 @@
 ;(function(GhostLand){
   var O = GhostLand.Observer
+    , Settings = GhostLand.Settings
     , Kinect = GhostLand.Kinect
     , Game = GhostLand.Game
     , $alert = document.getElementById('alert')
@@ -28,9 +29,11 @@
     }, 3000)
   })
 
-  Kinect.connect()
-  var kinectTryToConnect = setInterval(function(){
-    if(!Kinect.isConnected())
-      Kinect.connect()
-  }, 10000)
+  if (Settings.useKinect) {
+    Kinect.connect()
+    var kinectTryToConnect = setInterval(function(){
+      if(!Kinect.isConnected())
+        Kinect.connect()
+    }, 10000)
+  }
 })(window.GhostLand)
