@@ -197,6 +197,7 @@ window.GhostLand.Game = (function(GhostLand){
     currentState = gameStates[currentStateName]
     currentStateStartTime = Date.now()
     currentStateHits = 0
+    currentLife = 3
 
     // Backgrounds needs an update
     if (background.key != 'bg-' + currentState.bg) {

@@ -193,7 +193,8 @@ void drawDepth() {
 //  image(canvas, 0, 0);
   
   blobsImage.updatePixels();
-  image(blobsImage, 0, 0);
+//  image(blobsImage, 0, 0);
+  image(context.rgbImage(), 0, 0);
   drawRectangleToCanvas();
   
   bd.loadBlobsFeatures(); // mandatory

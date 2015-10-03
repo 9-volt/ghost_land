@@ -34,7 +34,7 @@ window.GhostLand.Enemies = (function(GhostLand){
   }
 
   function tick() {
-    var maxGhosts = Math.round(difficulty * difficulty + 2)
+    var maxGhosts = Math.round(difficulty * 2)
       , availableGhosts = maxGhosts - enemiesGroup.length
       , i
       , ghost
@@ -75,11 +75,11 @@ window.GhostLand.Enemies = (function(GhostLand){
   }
 
   function hitCount(x, y) {
-    var i , ghost, count = 0
+    var i , ghost, count = 0, error = 30
 
     for (i = enemiesGroup.length - 1; i >= 0 ; i--) {
       ghost = enemiesGroup[i]
-      if (x > ghost.x && x < ghost.x + 74 && y > ghost.y && y < ghost.y + 53) {
+      if (x + error > ghost.x && x - error < ghost.x + 74 && y + error > ghost.y && y - error < ghost.y + 53) {
         ghost.destroy()
         enemiesGroup.splice(i, 1)
         count++
