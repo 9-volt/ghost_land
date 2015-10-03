@@ -1,6 +1,7 @@
 window.GhostLand.Game = (function(GhostLand){
   var Settings = GhostLand.Settings
     , Enemies = GhostLand.Enemies
+    , Home = GhostLand.Home
     , game
     , background
     , gameStates = {
@@ -76,6 +77,7 @@ window.GhostLand.Game = (function(GhostLand){
     game.load.image('bg-day', 'assets/bg-day.png');
     game.load.image('bg-night', 'assets/bg-night.png');
     game.load.spritesheet('sprite-ghost', 'assets/sprite-ghost.png', 74, 53, 6, 0, 1);
+    game.load.spritesheet('sprite-home', 'assets/sprite-home.png', 79, 82, 4, 0, 1);
     game.load.audio('audio-death', 'assets/audio/death.mp3')
     game.load.audio('audio-gameplay', 'assets/audio/gameplay.mp3')
     game.load.audio('audio-hit', 'assets/audio/hit.mp3')
@@ -108,6 +110,7 @@ window.GhostLand.Game = (function(GhostLand){
 
     // Enemies
     Enemies.init(game)
+    Home.init(game)
 
     // Audio
     audio.death = game.add.audio('audio-death')
@@ -128,6 +131,8 @@ window.GhostLand.Game = (function(GhostLand){
 
     if (currentStateName === 'game' && Enemies.isHouseHit()) {
       currentLife--;
+      Home.setLife(currentLife)
+      Home.hit()
       console.log('Life left', currentLife)
 
       if (currentLife == 0) {
@@ -196,12 +201,14 @@ window.GhostLand.Game = (function(GhostLand){
 
     if (nextState === 'game') {
       Enemies.start()
+      Home.show()
       scoreText.text = '0'
       audio.start && audio.start.play()
       audio.intro && audio.intro.isPlaying && audio.intro.stop()
       audio.gameplay && !audio.gameplay.isPlaying && audio.gameplay.play()
     } else {
       Enemies.stop()
+      Home.hide()
       scoreText.text = ''
       audio.gameplay && audio.gameplay.isPlaying && audio.gameplay.stop()
       audio.intro && !audio.intro.isPlaying && audio.intro.play()
