@@ -1,5 +1,6 @@
 window.GhostLand.Game = (function(GhostLand){
   var Settings = GhostLand.Settings
+    , Enemies = GhostLand.Enemies
     , game
     , background
     , gameStates = {
@@ -41,7 +42,7 @@ window.GhostLand.Game = (function(GhostLand){
         }
       , death: {
           bg: 'day'
-        , time: Settings.isDebug ? 0.5 : 30
+        , time: 30
         , next: 'lets_play'
         , text: 'HARD ONE, EH?\n\nWANNA TRY AGAIN?\nHIT THE SUN FOR “YES”'
         }
@@ -51,9 +52,10 @@ window.GhostLand.Game = (function(GhostLand){
     , currentStateName = null
     , currentStateStartTime = null
     , currentStateHits = 0
+    , currentLife = 3
 
   function init() {
-    game = new Phaser.Game(Settings.width, Settings.height, Phaser.CANVAS, 'ghost-land', {
+    game = new Phaser.Game(Settings.width, Settings.height, Phaser.AUTO, 'ghost-land', {
       preload: preload
     , create: create
     , update: update
@@ -63,24 +65,46 @@ window.GhostLand.Game = (function(GhostLand){
   function preload() {
     game.load.image('bg-day', 'assets/bg-day.png');
     game.load.image('bg-night', 'assets/bg-night.png');
+    game.load.spritesheet('sprite-ghost', 'assets/sprite-ghost.png', 74, 53, 6, 0, 1);
   }
 
   function create() {
+    // Background
     background = game.add.tileSprite(0, 0, game.width, game.height, 'bg-day')
 
+    // Phisics
+    game.physics.startSystem(Phaser.Physics.P2JS)
+    // game.physics.p2.defaultRestitution = 0.8
+    game.physics.p2.gravity.y = 100
+
+    // Input
     game.input.mouse.mouseDownCallback = function(ev) {
       hit(ev.clientX, ev.clientY)
     }
 
-    // Init text
+    // Text
     text = game.add.text(0, 0, '', textStyle);
     text.setTextBounds(100, 200, 600, 400);
 
+    // State
     checkForState()
+
+    // Enemies
+    Enemies.init(game)
   }
 
   function update() {
     checkForState()
+    Enemies.tick()
+
+    if (currentStateName === 'game' && Enemies.isHouseHit()) {
+      currentLife--;
+      console.log('Life left', currentLife)
+
+      if (currentLife == 0) {
+        setState('death')
+      }
+    }
   }
 
   function hit(x, y) {
@@ -96,7 +120,15 @@ window.GhostLand.Game = (function(GhostLand){
       setState(currentState.next)
     // If completed death
     } else if (currentStateName == 'death' && currentStateHits >= 1) {
-      setState(currentState.next)
+      // setState(currentState.next)
+      setState('lets_play_then')
+    } else if (currentStateName == 'game') {
+      if (Enemies.isHit(x, y)) {
+        currentStateHits++;
+        Enemies.difficulty(Math.log(currentStateHits))
+      } else {
+        console.log('Missed')
+      }
     }
   }
 
@@ -127,6 +159,12 @@ window.GhostLand.Game = (function(GhostLand){
 
     if (currentState.text != null) {
       text.text = currentState.text;
+    }
+
+    if (nextState === 'game') {
+      Enemies.start()
+    } else {
+      Enemies.stop()
     }
   }
 
