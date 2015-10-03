@@ -214,7 +214,8 @@ window.GhostLand.Game = (function(GhostLand){
       audio.start && audio.start.play()
       audio.intro && audio.intro.isPlaying && audio.intro.stop()
       audio.gameplay && !audio.gameplay.isPlaying && audio.gameplay.play()
-      sun && sun.destroy() && (sun = null)
+      sun && (sun.destroy() || (sun = null))
+
     } else {
       Enemies.stop()
       Home.hide()
