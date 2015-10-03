@@ -128,8 +128,10 @@ window.GhostLand.Game = (function(GhostLand){
       // setState(currentState.next)
       setState('lets_play_then')
     } else if (currentStateName == 'game') {
-      if (Enemies.isHit(x, y)) {
-        currentStateHits++;
+      var hitCount = Enemies.hitCount(x, y)
+
+      if (hitCount) {
+        currentStateHits += hitCount
         Enemies.difficulty(Math.log(currentStateHits))
         scoreText.text = currentStateHits
       } else {

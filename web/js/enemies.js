@@ -74,19 +74,19 @@ window.GhostLand.Enemies = (function(GhostLand){
     return {x: x, y: y}
   }
 
-  function isHit(x, y) {
-    var i , ghost
+  function hitCount(x, y) {
+    var i , ghost, count = 0
 
-    for (i = 0; i < enemiesGroup.length; i++) {
+    for (i = enemiesGroup.length - 1; i >= 0 ; i--) {
       ghost = enemiesGroup[i]
       if (x > ghost.x && x < ghost.x + 74 && y > ghost.y && y < ghost.y + 53) {
         ghost.destroy()
         enemiesGroup.splice(i, 1)
-        return true
+        count++
       }
     }
 
-    return false
+    return count
   }
 
   function isHouseHit() {
@@ -110,7 +110,7 @@ window.GhostLand.Enemies = (function(GhostLand){
   , start: start
   , stop: stop
   , tick: tick
-  , isHit: isHit
+  , hitCount: hitCount
   , isHouseHit: isHouseHit
   }
 })(window.GhostLand)
