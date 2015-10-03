@@ -171,6 +171,8 @@ window.GhostLand.Game = (function(GhostLand){
         Enemies.difficulty(Math.log(currentStateHits))
         scoreText.text = currentStateHits
       } else {
+        game.add.tween(background)
+          .to({x: 20}, 40, Phaser.Easing.Bounce.InOut, true, 0, 2, true);
         console.log('Missed')
       }
     }
