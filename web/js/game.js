@@ -137,7 +137,7 @@ window.GhostLand.Game = (function(GhostLand){
       Home.hit()
       console.log('Life left', currentLife)
 
-      if (currentLife == 0) {
+      if (currentLife <= 0) {
         setState('death')
       }
     }
