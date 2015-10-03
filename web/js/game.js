@@ -47,12 +47,15 @@ window.GhostLand.Game = (function(GhostLand){
         , text: 'HARD ONE, EH?\n\nWANNA TRY AGAIN?\nHIT THE SUN FOR “YES”'
         }
       }
+    , text
     , textStyle = {font: "normal 24px sans-serif", align: "center", fill: "#fff", boundsAlignH: "center", boundsAlignV: "top" }
     , currentState = null
     , currentStateName = null
     , currentStateStartTime = null
     , currentStateHits = 0
     , currentLife = 3
+    , score = 0
+    , scoreText
 
   function init() {
     game = new Phaser.Game(Settings.width, Settings.height, Phaser.AUTO, 'ghost-land', {
@@ -85,6 +88,8 @@ window.GhostLand.Game = (function(GhostLand){
     // Text
     text = game.add.text(0, 0, '', textStyle);
     text.setTextBounds(100, 200, 600, 400);
+    scoreText = game.add.text(0, 0, '', {font: 'normal 36px sans-serif', align: 'right', fill: '#fff', boundsAlignH: 'right'})
+    scoreText.setTextBounds(600, 10, 180, 40);
 
     // State
     checkForState()
@@ -126,6 +131,7 @@ window.GhostLand.Game = (function(GhostLand){
       if (Enemies.isHit(x, y)) {
         currentStateHits++;
         Enemies.difficulty(Math.log(currentStateHits))
+        scoreText.text = currentStateHits
       } else {
         console.log('Missed')
       }
@@ -163,8 +169,10 @@ window.GhostLand.Game = (function(GhostLand){
 
     if (nextState === 'game') {
       Enemies.start()
+      scoreText.text = '0'
     } else {
       Enemies.stop()
+      scoreText.text = ''
     }
   }
 
