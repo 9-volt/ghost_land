@@ -65,6 +65,7 @@ window.GhostLand.Game = (function(GhostLand){
       , start: null
       }
     , sun
+    , lastHit
 
   function init() {
     game = new Phaser.Game(Settings.width, Settings.height, Phaser.AUTO, 'ghost-land', {
@@ -113,6 +114,7 @@ window.GhostLand.Game = (function(GhostLand){
     // Enemies
     Enemies.init(game)
     Home.init(game)
+    lastHit = new Phaser.Circle(0, 0, 20);
 
     // Audio
     audio.death = game.add.audio('audio-death')
@@ -130,6 +132,9 @@ window.GhostLand.Game = (function(GhostLand){
   function update() {
     checkForState()
     Enemies.tick()
+    if (Settings.isDebug) {
+      game.debug.geom(lastHit, '#cfffff');
+    }
 
     if (currentStateName === 'game' && Enemies.isHouseHit()) {
       currentLife--;
@@ -144,6 +149,9 @@ window.GhostLand.Game = (function(GhostLand){
   }
 
   function hit(x, y) {
+    lastHit.x = x;
+    lastHit.y = y;
+
     if (currentStateName == 'hit_the_sun' || currentStateName == 'death') {
       // Hit the sun
       if (x > 338 && x < 463 && y > 27 && y < 152) {

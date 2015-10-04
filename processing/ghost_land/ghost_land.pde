@@ -93,12 +93,12 @@ void onAllCornersSet() {
   cornerYSize = cornerYMax - cornerYMin;
   
   // Enlarge corners
-  cornerXMin -= (int) (cornerXSize * 0.1); 
-  cornerXMax += (int) (cornerXSize * 0.1); 
-  cornerXSize = cornerXMax - cornerXMin;
-  cornerYMin -= (int) (cornerYSize * 0.1);
-  cornerYMax += (int) (cornerYSize * 0.1);
-  cornerYSize = cornerYMax - cornerYMin;
+//  cornerXMin -= (int) (cornerXSize * 0.1); 
+//  cornerXMax += (int) (cornerXSize * 0.1); 
+//  cornerXSize = cornerXMax - cornerXMin;
+//  cornerYMin -= (int) (cornerYSize * 0.1);
+//  cornerYMax += (int) (cornerYSize * 0.1);
+//  cornerYSize = cornerYMax - cornerYMin;
   
 //  bd = new Detector(this, 0, 0, cornerXSize, cornerYSize, 255);
   bd = new Detector(this, 255);
@@ -314,9 +314,20 @@ void computeCentroid() {
             lastCentroidHit.y = lastCentroids[i - 1].y;
           }
           
-          // TODO emit wall hit
-          hitX = (lastCentroidHit.x - cornerXMin) / cornerXSize;
-          hitY = (lastCentroidHit.y - cornerYMin) / cornerYSize;
+          // Transform projected image pixels to rectangle pixels
+          // TODO Try using a better transformation (eg affine)
+          float hitXTop = (lastCentroidHit.x - corners[0].x) / (corners[1].x - corners[0].x);
+          float hitXBottom = (lastCentroidHit.x - corners[3].x) / (corners[2].x - corners[3].x);
+          float hitXPosition = (lastCentroidHit.y - cornerYMin) / cornerYSize;
+          hitX = hitXTop * hitXPosition + hitXBottom * (1 - hitXPosition);
+          
+          float hitYLeft = (lastCentroidHit.y - corners[0].y) / (corners[3].y - corners[0].y);
+          float hitYRight = (lastCentroidHit.y - corners[1].y) / (corners[2].y - corners[1].y);
+          float hitYPosition = (lastCentroidHit.x - cornerXMin) / cornerXSize;
+          hitY = hitYLeft * hitYPosition + hitYRight * (1 - hitYPosition);
+          
+//          hitX = (lastCentroidHit.x - cornerXMin) / cornerXSize;
+//          hitY = (lastCentroidHit.y - cornerYMin) / cornerYSize;
           print("{\"action\": \"hit\", \"x\": " + hitX + ", \"y\": " + hitY + "}");
           socket.broadcast("{\"action\": \"hit\", \"x\": " + hitX + ", \"y\": " + hitY + "}");
         // Too far from wall
